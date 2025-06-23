@@ -35,4 +35,4 @@ Berdasarkan analisa tersebut, buat project monorepo (pada repository ini) dengan
 - JDK version: `Oracle JDK 17 or later`
 - Springboot version: `3.0.x`
 
-terkait design system Toko, Barang, Pembelian pada ecommerse tersebut.
+terkait design system Toko, Barang, Pembelian pada ecommerse tersebut..
