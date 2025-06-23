@@ -32,4 +32,10 @@ Mendukung REST API, JPA, Security, dll.
 
 Kemudian temen-temen buat design database, module (monolith/microservices) berdasarkan gambar atau schenario tersebut. Serta jelakan mengapa menggunakan design tersebut.
 
+![Design_Database](imgs/Design_Database.png)
+
+Desain sistem yang ditunjukkan pada gambar menggunakan pendekatan arsitektur monolith, di mana seluruh fitur utama seperti katalog produk, keranjang belanja, checkout, dan riwayat transaksi diintegrasikan dalam satu aplikasi backend. Semua fitur berbagi satu basis kode dan satu database, sehingga pengelolaan dan pengembangan menjadi lebih sederhana. Pendekatan ini dipilih karena sesuai untuk sistem berskala kecil hingga menengah seperti proyek pretest atau tugas magang. Dengan hanya satu project, proses build dan deployment menjadi lebih cepat serta efisien. Selain itu, tidak diperlukan konfigurasi komunikasi antar layanan seperti pada microservices. Hal ini sangat mendukung tim pengembang yang berukuran kecil dan mempercepat waktu penyelesaian proyek. Nantinya, jika sistem berkembang dan membutuhkan skalabilitas yang lebih tinggi, arsitektur ini tetap fleksibel untuk dipecah menjadi microservices sesuai kebutuhan.
+
+
+
 
