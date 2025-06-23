@@ -26,6 +26,7 @@ Dalam suatu schenario ada requirement membuat aplikasi e-commerse seperti Tokope
     ![detail-transaction](imgs/detail-transaction.png)
 
 Kemudian temen-temen buat design database, module (monolith/microservices) berdasarkan gambar atau schenario tersebut. Serta jelakan mengapa menggunakan design tersebut.
+JAWABAN NYA ADA DI knowledge.md
 
 ## Praktek
 
