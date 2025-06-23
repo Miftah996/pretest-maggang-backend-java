@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detail Produk</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    p {
+      margin: 6px 0;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .add-btn {
+      background-color: #27ae60;
+      color: white;
+    }
+    .add-btn:hover {
+      background-color: #1e874b;
+    }
+    .cart-btn {
+      background-color: #34495e;
+      color: white;
+    }
+    .cart-btn:hover {
+      background-color: #2c3e50;
+    }
+    .back-link {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .back-link a {
+      text-decoration: none;
+      color: #2c3e50;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 id="name">Memuat...</h2>
+    <p id="desc"></p>
+    <p id="price"></p>
+    <p id="stock"></p>
+
+    <div class="btn-group">
+      <button class="btn add-btn" id="addCart">+ Tambah ke Keranjang</button>
+      <button class="btn cart-btn" onclick="window.location.href='/cart.html'">🛒 Lihat Keranjang</button>
+    </div>
+
+    <div class="back-link">
+      <a href="/catalog.html">🔙 Kembali ke Katalog</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+
+    fetch(`/api/products/${productId}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Produk tidak ditemukan");
+        return res.json();
+      })
+      .then(product => {
+        document.getElementById("name").innerText = product.name;
+        document.getElementById("desc").innerText = "Deskripsi: " + product.description;
+        document.getElementById("price").innerText = "Harga: Rp" + product.price.toLocaleString("id-ID");
+        document.getElementById("stock").innerText = "Stok: " + product.stock;
+
+        document.getElementById("addCart").onclick = () => {
+          fetch("/cart", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ productId: product.id })
+          }).then(res => {
+            if (res.ok) alert("✅ Produk ditambahkan ke keranjang!");
+            else alert("⚠️ Gagal menambahkan ke keranjang.");
+          });
+        };
+      })
+      .catch(err => {
+        document.querySelector(".card").innerHTML = "<p>❌ Produk tidak ditemukan.</p>";
+        console.error("Error:", err);
+      });
+  </script>
+</body>
+</html>

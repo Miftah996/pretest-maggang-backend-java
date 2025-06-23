@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Katalog Produk</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+    #search {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+    }
+    #search input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #sortBy {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .product {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .product h3 {
+      margin: 0 0 8px;
+    }
+    .product p {
+      margin: 4px 0;
+    }
+    .product button {
+      margin-right: 8px;
+      padding: 6px 10px;
+      border: none;
+      background-color: #2980b9;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .product button:hover {
+      background-color: #1f6391;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <h1>Katalog Produk</h1>
+
+  <div class="top-controls">
+    <div id="search">
+      <input type="text" id="searchInput" placeholder="Cari produk...">
+    </div>
+    <div>
+      <label for="sortBy">Urutkan:</label>
+      <select id="sortBy" onchange="urutkanProduk()">
+        <option value="default">Default</option>
+        <option value="hargaAsc">Harga Termurah</option>
+        <option value="hargaDesc">Harga Termahal</option>
+        <option value="namaAsc">Nama A–Z</option>
+        <option value="namaDesc">Nama Z–A</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="product-list">Memuat produk...</div>
+
+  <script>
+    fetch("/navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar-container").innerHTML = html;
+      });
+
+    let allProducts = [];
+
+    document.addEventListener("DOMContentLoaded", muatProduk);
+
+    function muatProduk() {
+      fetch("/api/products")
+        .then(res => {
+          if (!res.ok) throw new Error("Gagal fetch produk");
+          return res.json();
+        })
+        .then(data => {
+          allProducts = data;
+          tampilkanProduk(allProducts);
+        })
+        .catch(err => {
+          document.getElementById("product-list").innerHTML = "<p>❌ Gagal memuat produk.</p>";
+          console.error("Fetch error:", err);
+        });
+    }
+
+    function tampilkanProduk(produkList) {
+      const list = document.getElementById("product-list");
+      list.innerHTML = "";
+
+      if (produkList.length === 0) {
+        list.innerHTML = "<p>Tidak ada produk yang cocok.</p>";
+        return;
+      }
+
+      produkList.forEach(product => {
+        const item = document.createElement("div");
+        item.className = "product";
+        const harga = typeof product.price === "number" ? `Rp${product.price.toLocaleString("id-ID")}` : "Tidak tersedia";
+        item.innerHTML = `
+          <h3>${product.name}</h3>
+          <p><strong>Deskripsi:</strong> ${product.description}</p>
+          <p><strong>Harga:</strong> ${harga}</p>
+          <button onclick="location.href='item.html?id=${product.id}'">Lihat Detail</button>
+          <button onclick="tambahKeKeranjang(${product.id})">+ Keranjang</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function tambahKeKeranjang(productId) {
+      fetch("/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId })
+      })
+      .then(res => {
+        if (res.ok) {
+          window.location.href = "/cart.html";
+        } else {
+          alert("⚠️ Gagal menambahkan ke keranjang");
+        }
+      })
+      .catch(err => {
+        console.error("Tambah keranjang error:", err);
+        alert("❌ Terjadi kesalahan.");
+      });
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      const hasilFilter = allProducts.filter(p =>
+        p.name.toLowerCase().includes(keyword) ||
+        p.description.toLowerCase().includes(keyword)
+      );
+      tampilkanProduk(hasilFilter);
+    });
+
+    function urutkanProduk() {
+      const sortBy = document.getElementById("sortBy").value;
+      let sorted = [...allProducts];
+
+      switch (sortBy) {
+        case "hargaAsc":
+          sorted.sort((a, b) => a.price - b.price);
+          break;
+        case "hargaDesc":
+          sorted.sort((a, b) => b.price - a.price);
+          break;
+        case "namaAsc":
+          sorted.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case "namaDesc":
+          sorted.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        default:
+          sorted = allProducts;
+      }
+
+      tampilkanProduk(sorted);
+    }
+  </script>
+</body>
+</html>

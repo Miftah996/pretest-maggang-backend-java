@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Keranjang Belanja</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f7f7f7;
+      padding: 20px;
+    }
+    .cart-item {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .cart-item p {
+      margin: 4px 0;
+    }
+    .subtotal {
+      font-weight: bold;
+    }
+    .total {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: right;
+    }
+    button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .checkout-btn {
+      background: #27ae60;
+      color: white;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+    }
+    .riwayat-btn {
+      background: #3498db;
+      color: white;
+    }
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    input.qty-input {
+      width: 50px;
+      padding: 4px;
+      text-align: center;
+    }
+    .back-btn-container {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .back-btn-container a button {
+      background: #2980b9;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .back-btn-container a button:hover {
+      background: #1f6391;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <h2 style="text-align:center;">Keranjang Belanja</h2>
+
+  <div id="cart-list">Memuat keranjang...</div>
+  <div class="total" id="total-harga"></div>
+
+  <div class="action-buttons">
+    <a href="/riwayat.html">
+      <button class="riwayat-btn">Riwayat Transaksi</button>
+    </a>
+    <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+  </div>
+
+  <div class="back-btn-container">
+    <a href="/catalog.html">
+      <button>⬅️ Kembali ke Katalog</button>
+    </a>
+  </div>
+
+  <script>
+    fetch("/navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar-container").innerHTML = html;
+      });
+
+    const list = document.getElementById("cart-list");
+    const totalDisplay = document.getElementById("total-harga");
+    const checkoutBtn = document.getElementById("checkoutBtn");
+
+    document.addEventListener("DOMContentLoaded", muatCart);
+
+    function muatCart() {
+      list.innerHTML = "<p>⏳ Memuat...</p>";
+      fetch("/cart")
+        .then(res => {
+          if (!res.ok) throw new Error("Gagal ambil data");
+          return res.json();
+        })
+        .then(items => {
+          list.innerHTML = "";
+          let total = 0;
+
+          if (items.length === 0) {
+            list.innerHTML = "<p>Keranjang kamu masih kosong.</p>";
+            totalDisplay.innerText = "";
+            return;
+          }
+
+          items.forEach(item => {
+            const subtotal = item.product.price * item.quantity;
+            total += subtotal;
+
+            const div = document.createElement("div");
+            div.className = "cart-item";
+            div.innerHTML = `
+              <p><strong>${item.product.name}</strong></p>
+              <p>
+                Jumlah:
+                <input type="number" min="1" value="${item.quantity}" class="qty-input" id="qty-${item.id}">
+                <button onclick="updateQty(${item.id})">Perbarui</button>
+              </p>
+              <p class="subtotal">Subtotal: Rp${subtotal.toLocaleString("id-ID")}</p>
+              <button class="delete-btn" onclick="hapusItem(${item.id})">Hapus</button>
+            `;
+            list.appendChild(div);
+          });
+
+          totalDisplay.innerText = "Total: Rp" + total.toLocaleString("id-ID");
+        })
+        .catch(err => {
+          console.error("Gagal ambil keranjang:", err);
+          list.innerHTML = "<p>❌ Gagal memuat keranjang.</p>";
+        });
+    }
+
+    function updateQty(cartItemId) {
+      const qtyInput = document.getElementById("qty-" + cartItemId);
+      const newQty = parseInt(qtyInput.value);
+
+      if (isNaN(newQty) || newQty < 1) {
+        alert("Jumlah harus minimal 1");
+        return;
+      }
+
+      fetch("/cart/" + cartItemId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ quantity: newQty })
+      })
+        .then(res => {
+          if (res.ok) {
+            muatCart();
+          } else {
+            alert("❌ Gagal update jumlah.");
+          }
+        })
+        .catch(err => {
+          console.error("Gagal update:", err);
+        });
+    }
+
+    function hapusItem(cartItemId) {
+      fetch("/cart/" + cartItemId, {
+        method: "DELETE"
+      })
+        .then(res => {
+          if (res.ok) {
+            muatCart();
+          } else {
+            alert("❌ Gagal menghapus item.");
+          }
+        })
+        .catch(err => {
+          console.error("Gagal hapus:", err);
+        });
+    }
+
+    checkoutBtn.addEventListener("click", () => {
+      checkoutBtn.disabled = true;
+      fetch("/cart/checkout", {
+        method: "POST"
+      })
+        .then(res => {
+          if (res.ok) {
+            alert("✅ Berhasil checkout!");
+            list.innerHTML = "<p>Terima kasih! Pesanan kamu sedang diproses.</p>";
+            totalDisplay.innerText = "";
+            checkoutBtn.style.display = "none";
+          } else {
+            alert("❌ Gagal checkout.");
+          }
+        })
+        .catch(err => {
+          console.error("Checkout error:", err);
+          alert("Terjadi error saat checkout.");
+        })
+        .finally(() => {
+          checkoutBtn.disabled = false;
+        });
+    });
+  </script>
+</body>
+</html>

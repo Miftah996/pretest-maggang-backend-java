@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Riwayat Transaksi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    h2 {
+      text-align: center;
+    }
+    .transaction {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .transaction button {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: none;
+      background: #2980b9;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .transaction button:hover {
+      background-color: #1c5a85;
+    }
+  </style>
+</head>
+<body>
+  <h2>Riwayat Transaksi</h2>
+  <div id="transaksi-list">Memuat transaksi...</div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    fetch("/transactions", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("transaksi-list");
+      container.innerHTML = "";
+
+      if (data.length === 0) {
+        container.innerHTML = "<p>Kamu belum pernah checkout.</p>";
+        return;
+      }
+
+      data.forEach(tx => {
+        const div = document.createElement("div");
+        div.className = "transaction";
+        div.innerHTML = `
+          <p><strong>ID:</strong> ${tx.id}</p>
+          <p><strong>Tanggal:</strong> ${new Date(tx.createdAt).toLocaleString("id-ID")}</p>
+          <p><strong>Total:</strong> Rp${tx.total.toLocaleString("id-ID")}</p>
+          <button onclick="location.href='transaction-detail.html?id=${tx.id}'">Lihat Detail</button>
+        `;
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      document.getElementById("transaksi-list").innerHTML = "<p>Gagal memuat transaksi.</p>";
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
