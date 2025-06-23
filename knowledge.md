@@ -29,3 +29,7 @@ Sudah include embedded server (Tomcat).
 Mendukung REST API, JPA, Security, dll.
 
 
+
+Kemudian temen-temen buat design database, module (monolith/microservices) berdasarkan gambar atau schenario tersebut. Serta jelakan mengapa menggunakan design tersebut.
+
+
